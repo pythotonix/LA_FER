@@ -9,7 +9,7 @@ face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1)
 
 # Path to dataset
 test_dir = "test"  # Parent directory containing emotion folders
-save_dir = "selected_landmarks_test"  # Directory to save landmarks
+save_dir = "data\\selected_landmarks_test"  # Directory to save landmarks
 
 # Create save directory if it doesn't exist
 os.makedirs(save_dir, exist_ok=True)
