@@ -7,21 +7,31 @@ mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1)
 
 # Define landmark indices for eye, mouth, and full jawline
-eye_mouth_face_outline_indices = [
-    # Left Eye (Upper & Lower)
-    246, 161, 160, 159, 158, 157, 173, 263, 249, 390, 373, 374, 380, 381, 382, 362,
-    # Right Eye (Upper & Lower)
-    466, 388, 387, 386, 385, 384, 398, 33, 7, 163, 144, 145, 153, 154, 155, 133,
-    # Mouth Outer Border
-    61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185,
-    # Mouth Inner Border
-    78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82,
-    # Full Face Silhouette (Jawline - Ear to Ear)
-    234, 93, 132, 58, 172, 136, 150, 149, 176, 148, 152, 377, 400, 378, 379, 365, 397, 288, 361, 323, 454
+selected_landmark_indices = [
+    # Jawline (simplified)
+    234, 93, 132, 58, 172, 136, 150, 149, 152, 377, 400, 378, 288,
+
+    # Eyebrows (inner, middle, outer for both sides)
+    70, 63, 105, 66, 107,   # Right eyebrow
+    336, 296, 334, 293, 300,  # Left eyebrow
+
+    # Eyes (corners + centers)
+    133, 159, 145, 153, 154, 155, 246,  # Right eye
+    362, 386, 374, 380, 381, 382, 466,  # Left eye
+
+    # Nose (bridge + tip + nostrils)
+    1, 2, 98, 327, 168, 195, 5,
+
+    # Mouth outer + inner (simplified)
+    61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 0, 13, 14,
+
+    # Chin, mid-lip, and mid-forehead
+    152, 19, 94
 ]
 
+
 # Load 48x48 grayscale image
-image_path = "train\\happy\\Training_1206.jpg"
+image_path = "examples\image.png"
 img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
 # Convert to RGB
@@ -40,7 +50,7 @@ else:
     landmarks = []
 
     for face_landmarks in results.multi_face_landmarks:
-        for idx in eye_mouth_face_outline_indices:
+        for idx in selected_landmark_indices:
             landmark = face_landmarks.landmark[idx]
             x, y = int(landmark.x * img.shape[1]), int(landmark.y * img.shape[0])
             landmarks.append((x, y))
@@ -53,7 +63,7 @@ else:
     # np.save("landmarks_eyes_mouth_jawline.npy", landmarks_array)
 
     # Save image with landmarks
-    cv2.imwrite('landmarks_eyes_mouth_jawline.jpg', img)
+    cv2.imwrite('selected_landmark_indices.jpg', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
