@@ -1,55 +1,50 @@
 import numpy as np
 from collections import Counter
+from collections import defaultdict
 
-class KNN:
+
+def compute_all_pairwise_distances(X_test, X_train):
+    X_test_sq = np.sum(X_test**2, axis=1).reshape(-1, 1)        # shape: (num_test, 1)
+    X_train_sq = np.sum(X_train**2, axis=1).reshape(1, -1)       # shape: (1, num_train)
+    dists = np.sqrt(np.maximum(X_test_sq + X_train_sq - 2 * np.dot(X_test, X_train.T), 0.0))
+    return dists
+
+class KNN_Custom:
     
-    def __init__(self, num_neighbors: int = 5):
-        self.num_neighbors = num_neighbors
+    def __init__(self, k = 5):
+        self.k = k
+    
+    def fit(self, X, y):
+        self.X_train = X
+        self.y_train = y
+        self.classes_ = np.unique(y)
         
-    def fit(self, X: np.array, y: np.array):
-        """
-        Memorize training data.
-        """
-        self.X = X
-        self.y = y
+    def predict(self, X_test):
+        print("making prediction:")
         
-    def get_distance(self, a: np.array, b: np.array):
-        """
-        Calculate Euclidean distance between two examples.
-        """
-        return np.sqrt(np.sum((a - b) ** 2))
+        distances = compute_all_pairwise_distances(X_test, self.X_train)
+        
+        print("finish calculating")
     
-    def get_neighbors(self, example: np.array):
-        """
-        Find and rank nearest neighbors of an example.
-        """
-        distances = []
-        # Calculate distances as tuples (index, distance)
-        for i in range(len(self.X)):
-            distances.append((i, self.get_distance(self.X[i], example)))
-        # Sort by distance
-        distances.sort(key=lambda x: x[1])
-        # Return IDs and distances of top neighbors
-        return distances[:self.num_neighbors]
-    
-    def predict(self, X: np.array):
-        """
-        Predict class labels for given examples using majority vote.
-        """
+        epsilon = 1e-5
+        final_predictions = []
+
+        epsilon = 1e-5
+        num_test = X_test.shape[0]
         predictions = []
-        for idx in range(len(X)):
-            example = X[idx]
-            k_neighbors = self.get_neighbors(example)
-            k_y_values = [self.y[item[0]] for item in k_neighbors]
-            # Determine the most common label among the neighbors
-            prediction = Counter(k_y_values).most_common(1)[0][0]
-            predictions.append(prediction)
+
+        for i in range(num_test):
+            k_idx = np.argpartition(distances[i], self.k)[:self.k]
+            k_labels = self.y_train[k_idx]
+            k_distances = distances[i][k_idx]
+
+            weights = 1 / (k_distances + epsilon)
+
+            label_weights = defaultdict(float)
+            for label, weight in zip(k_labels, weights):
+                label_weights[label] += weight
+
+            predicted_label = max(label_weights.items(), key=lambda x: x[1])[0]
+            predictions.append(predicted_label)
+
         return np.array(predictions)
-    
-    def score(self, X: np.array, y: np.array) -> float:
-        """
-        Compute the accuracy of the classifier.
-        """
-        predictions = self.predict(X)
-        accuracy = np.mean(predictions == y)
-        return accuracy

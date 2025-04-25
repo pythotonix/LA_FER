@@ -2,7 +2,18 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from knn import KNN
+from knn import KNN_Custom
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score
+)
 
 angry_train = np.load('../data/selected_landmarks_train/angry_landmarks.npy')
 disgust_train = np.load('../data/selected_landmarks_train/disgust_landmarks.npy')
@@ -44,11 +55,8 @@ train_X_list = []
 train_y_list = []
 
 for emotion, data in train_data.items():
-    # Reshape each sample from (90, 2) to a flat vector of length 180
     train_X_list.append(data.reshape(data.shape[0], -1))
-    # Create an array of labels for the emotion
     train_y_list.append(np.full((data.shape[0],), emotion))
-
 
 X_train = np.concatenate(train_X_list, axis=0)
 y_train = np.concatenate(train_y_list, axis=0)
@@ -67,8 +75,29 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-knn = KNN(1)
+knn = KNN_Custom(k=97)
 knn.fit(X_train_scaled, y_train)
 
-accuracy = knn.score(X_test_scaled, y_test)
-print("\nTest Accuracy:", accuracy)
+knn_predictions = knn.predict(X_test_scaled)
+
+cm = confusion_matrix(y_test, knn_predictions, labels=knn.classes_)
+
+print("Classification Report:\n")
+report = classification_report(y_test, knn_predictions, digits=4, zero_division=0)
+print(report)
+
+print("Overall Metrics:")
+print("Accuracy:", accuracy_score(y_test, knn_predictions))
+print("Macro F1-score:", f1_score(y_test, knn_predictions, average='macro'))
+print("Weighted F1-score:", f1_score(y_test, knn_predictions, average='weighted'))
+print("Macro Precision:", precision_score(y_test, knn_predictions, average='macro'))
+print("Macro Recall:", recall_score(y_test, knn_predictions, average='macro'))
+
+plt.figure(figsize=(10, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=knn.classes_, yticklabels=knn.classes_)
+plt.title("Confusion Matrix Heatmap")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.tight_layout()
+plt.show()
+    
