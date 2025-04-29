@@ -2,8 +2,6 @@ import numpy as np
 import os
 import math
 
-# === UTILITY FUNCTIONS ===
-
 def euclidean_distance(p1, p2):
     return np.linalg.norm(np.array(p1) - np.array(p2))
 
@@ -13,7 +11,7 @@ def angle_between(p1, p2, p3):
     norm_product = np.linalg.norm(a) * np.linalg.norm(b)
     
     if norm_product == 0:
-        return 0.0  # or return np.nan if you want to filter it later
+        return 0.0
     
     cosine_angle = np.dot(a, b) / norm_product
     cosine_angle = np.clip(cosine_angle, -1.0, 1.0)
@@ -30,7 +28,6 @@ def area_of_triangle(p1, p2, p3):
 def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
     assert landmarks_468.shape == (468, 2), "Input must be a (468, 2) array"
 
-    # === INDICES ===
     LEFT_EYE = [33, 133]
     RIGHT_EYE = [362, 263]
     MOUTH = [61, 291]
@@ -47,8 +44,6 @@ def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
     RIGHT_NOSTRIL = 327
     LEFT_CHEEK = 234
     RIGHT_CHEEK = 454
-
-    # === BASIC DISTANCES ===
     dist_left_eye = euclidean_distance(landmarks_468[33], landmarks_468[133])
     dist_right_eye = euclidean_distance(landmarks_468[362], landmarks_468[263])
     dist_mouth = euclidean_distance(landmarks_468[61], landmarks_468[291])
@@ -61,38 +56,31 @@ def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
     brow_eye_dist_R = euclidean_distance(landmarks_468[70], landmarks_468[159])
     brow_eye_dist_L = euclidean_distance(landmarks_468[300], landmarks_468[386])
 
-    # === RATIOS ===
     ratio_mouth_to_eyes = dist_mouth / interocular if interocular != 0 else 0
     ratio_eyebrow_to_eyes = eyebrow_dist / interocular if interocular != 0 else 0
     ratio_mouth_height_to_width = mouth_height / dist_mouth if dist_mouth != 0 else 0
     ratio_nose_to_face = nose_length / face_height if face_height != 0 else 0
     ratio_broweye_to_face = (brow_eye_dist_R + brow_eye_dist_L) / (2 * face_height) if face_height != 0 else 0
 
-    # === ANGLES ===
     angle_mouth_nose_chin = angle_between(landmarks_468[61], landmarks_468[1], landmarks_468[152])
     angle_eyebrow_eye = angle_between(landmarks_468[70], landmarks_468[300], landmarks_468[263])
     angle_brow_R = angle_between(landmarks_468[BROWS_R[0]], landmarks_468[BROWS_R[1]], landmarks_468[BROWS_R[2]])
     angle_brow_L = angle_between(landmarks_468[BROWS_L[0]], landmarks_468[BROWS_L[1]], landmarks_468[BROWS_L[2]])
     face_tilt = angle_between(landmarks_468[LEFT_CHEEK], landmarks_468[NOSE_TIP], landmarks_468[RIGHT_CHEEK])
 
-    # === AREAS ===
     area_mouth_nose = area_of_triangle(landmarks_468[61], landmarks_468[291], landmarks_468[1])
     area_nostril_triangle = area_of_triangle(landmarks_468[98], landmarks_468[327], landmarks_468[1])
 
-    # === SYMMETRY ===
     left_eye_height = abs(landmarks_468[159][1] - landmarks_468[145][1])
     right_eye_height = abs(landmarks_468[386][1] - landmarks_468[374][1])
     eye_height_diff = abs(left_eye_height - right_eye_height)
 
-    # === CENTROID SPREAD ===
     face_center_indices = [33, 263, 61, 291, 1, 152]
     face_center = np.mean(landmarks_468[face_center_indices], axis=0)
     centroid_distances = [euclidean_distance(landmarks_468[i], face_center) for i in face_center_indices]
     centroid_spread_mean = np.mean(centroid_distances)
     centroid_spread_range = max(centroid_distances) - min(centroid_distances)
 
-    # === EXTRA FEATURES ===
-    # Mouth Aspect Ratio (MAR)
     mouth_width = euclidean_distance(landmarks_468[61], landmarks_468[291])
     mar_numerator = (
         euclidean_distance(landmarks_468[13], landmarks_468[14]) +
@@ -101,11 +89,8 @@ def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
     )
     mar = mar_numerator / (3 * mouth_width) if mouth_width != 0 else 0
 
-    # Jawline–Chin–Jawline angle
     jawline_chin_angle = angle_between(landmarks_468[234], landmarks_468[152], landmarks_468[454])
 
-
-    #check for NaN values in the features
     features = np.array([
         dist_left_eye, dist_right_eye, dist_mouth, mouth_height, eyebrow_dist, nose_length, face_height,
         interocular, nostril_width, brow_eye_dist_R, brow_eye_dist_L,
@@ -115,7 +100,7 @@ def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
         area_mouth_nose, area_nostril_triangle,
         eye_height_diff, centroid_spread_mean, centroid_spread_range, mar, jawline_chin_angle
     ], dtype=np.float32)
-    #use enumerate
+
     for i, feature in enumerate(features):
         if np.isnan(feature) or np.isinf(feature):
             raise ValueError(f"Feature {i} is NaN or Inf")
@@ -131,10 +116,8 @@ def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
         eye_height_diff, centroid_spread_mean, centroid_spread_range, mar, jawline_chin_angle
     ], dtype=np.float32)
 
-# === PROCESS ALL FILES ===
-
 load_dir = "data/landmarks_test"
-save_dir = "geometric_features/data_test"
+save_dir = "feature_extraction/geometric_features/data_test"
 os.makedirs(save_dir, exist_ok=True)
 
 for filename in os.listdir(load_dir):
@@ -143,7 +126,7 @@ for filename in os.listdir(load_dir):
         print(f"Processing {emotion}...")
 
         full_path = os.path.join(load_dir, filename)
-        landmarks_data = np.load(full_path)  # shape: (N, 468, 2)
+        landmarks_data = np.load(full_path)
 
         feature_vectors = []
 

@@ -94,14 +94,24 @@ def extract_geometric_features(landmarks_468: np.ndarray) -> np.ndarray:
     centroid_spread_mean = np.mean(centroid_distances)
     centroid_spread_range = max(centroid_distances) - min(centroid_distances)
 
+    mouth_width = euclidean_distance(landmarks_468[61], landmarks_468[291])
+    mar_numerator = (
+        euclidean_distance(landmarks_468[13], landmarks_468[14]) +
+        euclidean_distance(landmarks_468[78], landmarks_468[308]) +
+        euclidean_distance(landmarks_468[82], landmarks_468[312])
+    )
+    mar = mar_numerator / (3 * mouth_width) if mouth_width != 0 else 0
+
+    jawline_chin_angle = angle_between(landmarks_468[234], landmarks_468[152], landmarks_468[454])
+
     return np.array([
         dist_left_eye, dist_right_eye, dist_mouth, mouth_height, eyebrow_dist, nose_length, face_height,
         interocular, nostril_width, brow_eye_dist_R, brow_eye_dist_L,
         ratio_mouth_to_eyes, ratio_eyebrow_to_eyes, ratio_mouth_height_to_width,
         ratio_nose_to_face, ratio_broweye_to_face,
-        angle_mouth_nose_chin, angle_eyebrow_eye, angle_brow_R, angle_brow_L, face_tilt,
+        angle_mouth_nose_chin, angle_eyebrow_eye,
         area_mouth_nose, area_nostril_triangle,
-        eye_height_diff, centroid_spread_mean, centroid_spread_range
+        eye_height_diff, centroid_spread_mean, centroid_spread_range, mar, jawline_chin_angle
     ], dtype=np.float32)
 
 def extract_features_from_image(file_path: str):
