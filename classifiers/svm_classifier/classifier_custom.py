@@ -68,7 +68,7 @@ svm.fit(X_train_scaled, y_train)
 
 y_pred = svm.predict(X_test_scaled)
 accuracy = np.mean(y_pred == y_test)
-print("\nTest Accuracy (7-class):", accuracy)
+print("\nTest Accuracy:", accuracy)
 
 y_pred = svm.predict(X_test_scaled)
 
