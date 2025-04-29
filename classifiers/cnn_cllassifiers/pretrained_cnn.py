@@ -85,9 +85,6 @@ history = model.fit(
 loss, accuracy = model.evaluate(test_generator)
 print(f"Test Accuracy: {accuracy:.4f}")
 
-
-
-
 # === Predict on test set ===
 y_pred_probs = model.predict(test_generator)
 y_pred = np.argmax(y_pred_probs, axis=1)   # Convert softmax probs to class labels

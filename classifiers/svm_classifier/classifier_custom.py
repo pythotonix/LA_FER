@@ -1,16 +1,7 @@
 import numpy as np
+from svm import CustomSVM
 from sklearn.preprocessing import StandardScaler
-from knn import KNN_Weighted
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import (
-    classification_report,
-    confusion_matrix,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score
-)
+from sklearn.metrics import classification_report, confusion_matrix, f1_score, precision_score, recall_score
 
 angry_train = np.load('../../data/hybrid_data_train/angry_hybrid_features.npy')
 disgust_train = np.load('../../data/hybrid_data_train/disgust_hybrid_features.npy')
@@ -72,29 +63,28 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-knn = KNN_Weighted(k=97)
-knn.fit(X_train_scaled, y_train)
+svm = CustomSVM(C=1.0, gamma=0.05, max_iter=500, lr=0.001)
+svm.fit(X_train_scaled, y_train)
 
-knn_predictions = knn.predict(X_test_scaled)
+y_pred = svm.predict(X_test_scaled)
+accuracy = np.mean(y_pred == y_test)
+print("\nTest Accuracy (7-class):", accuracy)
 
-cm = confusion_matrix(y_test, knn_predictions, labels=knn.classes_)
+y_pred = svm.predict(X_test_scaled)
 
-print("Classification Report:\n")
-report = classification_report(y_test, knn_predictions, digits=4, zero_division=0)
-print(report)
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
 
-print("Overall Metrics:")
-print("Accuracy:", accuracy_score(y_test, knn_predictions))
-print("Macro F1-score:", f1_score(y_test, knn_predictions, average='macro'))
-print("Weighted F1-score:", f1_score(y_test, knn_predictions, average='weighted'))
-print("Macro Precision:", precision_score(y_test, knn_predictions, average='macro'))
-print("Macro Recall:", recall_score(y_test, knn_predictions, average='macro'))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, digits=4))
 
-plt.figure(figsize=(10, 6))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=knn.classes_, yticklabels=knn.classes_)
-plt.title("Confusion Matrix Heatmap")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.tight_layout()
-plt.show()
-    
+f1_macro = f1_score(y_test, y_pred, average='macro')
+f1_weighted = f1_score(y_test, y_pred, average='weighted')
+
+precision_macro = precision_score(y_test, y_pred, average='macro')
+recall_macro = recall_score(y_test, y_pred, average='macro')
+
+print("\nMacro F1-score:", f1_macro)
+print("Weighted F1-score:", f1_weighted)
+print("Macro Precision:", precision_macro)
+print("Macro Recall:", recall_macro)
