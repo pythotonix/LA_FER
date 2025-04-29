@@ -106,10 +106,4 @@ We used the [FER2013 dataset](https://www.kaggle.com/datasets/msambare/fer2013) 
 pip install -r requirements.txt
 ```
 
-⚠️ **Note:** CNN training code is provided separately in the `notebooks/`.
-
 ---
-
-## 📎 License
-
-This project is released under the MIT License. See `LICENSE` for details.

@@ -1,5 +1,5 @@
 import argparse
-from extract_features_one import extract_features_from_image
+from feature_extraction.extract_features_one import extract_features_from_image
 from classifiers.knn_classifier.classify_one import classify_photo_knn
 # from classifiers.svm_classifier.classify_one import classify_photo_svm  # Assuming you have it
 
