@@ -34,7 +34,7 @@ def classify_photo_knn(numpy_arr):
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
 
-    knn = KNeighborsClassifier(n_neighbors=97, weights="distance")
+    knn = KNeighborsClassifier(n_neighbors=57, weights="distance")
     knn.fit(X_train_scaled, y_train)
 
     numpy_arr = numpy_arr.reshape(1, -1)
