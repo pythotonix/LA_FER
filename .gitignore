@@ -1,5 +1,7 @@
 .qodo
 train
 test
+filtered_train
+filtered_test
 **/__pycache__/
 **/*.pyc
